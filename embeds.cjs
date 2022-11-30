@@ -200,8 +200,8 @@ const storeMainEmbed = new EmbedBuilder()
     .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
     .setDescription('Here are the store subcommands:')
     .addFields(
-        { name: '`ri-store perks`', value: 'Gives list of purchasable perk items', inline: true },
-        { name: '`ri-store items`', value: 'Gives list of all purchasable items (except perks)', inline: true },
+        { name: '`' + syst.prefix + 'store perks`', value: 'Gives list of purchasable perk items', inline: true },
+        { name: '`' + syst.prefix + 'store items`', value: 'Gives list of all purchasable items (except perks)', inline: true },
     )
     .setFooter({ text: 'Revade - An Akripent Plaza Bot', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
 

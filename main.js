@@ -1,47 +1,31 @@
 // Revade for Akripent Plaza
 // main code + internals by davidlao
-// part of the code + visuals by Akridiki
+// part of the code + design by Akridiki
 
-// Requires/Imports -- DONT CHANGE THE ORDER OF THE FIRST TWO //
+// As of the 29th of November 2022,
+// Revade is now licensed under CC Zero (Public Domain)
+
+// Enable both Import and Require //
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
+
+// Imports //
 import { createAudioResource, generateDependencyReport, createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel } from "@discordjs/voice";
+
+// Requires //
 const { ButtonBuilder, ButtonStyle, ActivityType, EmbedBuilder, ActionRowBuilder, MessageButton, MessageAttachment, SelectMenuBuilder } = require('discord.js');
-var express = require('express'); const { exec } = require("child_process"); var ffmpeg = require('ffmpeg'); // Video converter (mostly)
-const Twit = require('twit'); const ytdl = require('ytdl-core'); // Social libs
-const ms = require('ms'); const moment = require('moment'); // Wait libs
-const fs = require("fs"); // File management 
-var chanhol = "undefined"; var conhol = "undefined"; // Holders to avoid errors
-var chosencol, tchosencol; // "Time based embed" variables
+const Twit = require('twit'); // Twitter Library
+const moment = require('moment'); // Time Library
+const fs = require("fs"); // Filesystem Library 
 
 // External Revade Modules
 const revade = require("./revade.cjs"); // IMPORTANT: Initialization and misc.
-    
-           const syst = require("./system.cjs"); //Token and some const variables
+const syst = require("./system.cjs"); //Token and some const variables
 const compliments = require("./compliments.cjs"); //Compliments list
 const embeds = require("./embeds.cjs"); //Static embeds (doesnt work with dynamic ones but could make it so it works)
 
 // Initialize Revade //
 revade.start(); // Initializes Revade
-
-const queue = new Map();
-//const Guilds = revade.client.guilds.cache.map(guild => guild.id);
-
-// Disabled Distube Startup
-// const { DisTube } = require('distube')
-// const { SoundCloudPlugin } = require('@distube/soundcloud')
-// const { SpotifyPlugin } = require('@distube/spotify')
-// const distube = new DisTube(revade.client, {
-//     intents: myIntents,
-//     partials: [Partials.Channel],
-
-//     searchSongs: 5,
-//     searchCooldown: 5,
-//     leaveOnEmpty: true,
-//     leaveOnFinish: false,
-//     leaveOnStop: true,
-//     youtubeDL: false,
-// })
 
 //----------------------------
 
@@ -59,16 +43,29 @@ stream.on('tweet', function (tweet) {
 
     // console.log(tweet)
     var url = "https://twitter.com/" + tweet.user.screen_name + "/status/" + tweet.id_str;
+    
+    var colorrr = "#1db0ff"; var extra = "";
+    var mentionnn = "<@&889097512101756958> ";
+    var happened = false;
+
+    if (tweet.text.startsWith("RT @akridiki:"))
+        colorrr = "#55ff55"; extra = " retweeted"; mentionnn = ""; happened = true;
+
     try {
         let channel = revade.client.channels.fetch("796861147054604308").then(channel => {
 
             const embedTweet = new EmbedBuilder()
-                .setColor("#1db0ff")
-                .setAuthor({ name: tweet.user.name, iconURL: tweet.user.profile_image_url_https })
+                .setColor(colorrr)
+                .setAuthor({ name: tweet.user.name + extra, iconURL: tweet.user.profile_image_url_https })
                 .addFields(
                     { name: 'Date', value: tweet.created_at },
                 )
-                .setDescription(tweet.text)
+
+            if (happened) {
+                embedTweet.setDescription(tweet.text.replace("RT @akridiki:", ""))
+            } else {
+                embedTweet.setDescription(tweet.text)
+            }
 
             const row = new ActionRowBuilder()
                 .addComponents(
@@ -78,7 +75,7 @@ stream.on('tweet', function (tweet) {
                         .setURL(url)
                 );
 
-            channel.send({ content: "<@&889097512101756958> ", embeds: [embedTweet], components: [row] })
+            channel.send({ content: mentionnn, embeds: [embedTweet], components: [row] })
 
         }).catch(err => {
             console.log(err)
@@ -88,120 +85,6 @@ stream.on('tweet', function (tweet) {
         console.error(error);
     }
 })
-
-//----------------------------
-
-var tmpPlaySong, tmpLastRequested;
-
-///////////////////////
-
-async function execute(message, serverQueue) {
-    const args = message.content.split(" ");
-
-    const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel)
-        return message.channel.send(
-            "You need to be in a voice channel to play music!"
-        );
-
-    const songInfo = await ytdl.getInfo(args[1]);
-    const song = {
-        title: songInfo.videoDetails.title,
-        url: songInfo.videoDetails.video_url,
-    };
-
-    if (!serverQueue) {
-        queue.set(message.guild.id, queueContruct);
-        queueContruct.songs.push(song);
-
-        try {
-            play(message.guild, queueContruct.songs[0], message, voiceChannel);
-        } catch (err) {
-            console.log(err);
-            queue.delete(message.guild.id);
-            return message.channel.send(err);
-        }
-    } else {
-        serverQueue.songs.push(song);
-        return message.channel.send(`${song.title} has been added to the queue!`);
-    }
-}
-
-function skip(message, serverQueue) {
-    if (!message.member.voice.channel)
-        return message.channel.send(
-            "You have to be in a voice channel to stop the music!"
-        );
-    if (!serverQueue)
-        return message.channel.send("There is no song that I could skip!");
-    serverQueue.connection.dispatcher.end();
-}
-
-function stop(message, serverQueue) {
-    if (!message.member.voice.channel)
-        return message.channel.send(
-            "You have to be in a voice channel to stop the music!"
-        );
-
-    if (!serverQueue)
-        return message.channel.send("There is no song that I could stop!");
-
-    serverQueue.songs = [];
-    serverQueue.connection.dispatcher.end();
-}
-
-var queueContruct = {
-    textChannel: undefined,
-    voiceChannel: undefined,
-    connection: null,
-    songs: [],
-    volume: 5,
-    playing: true
-};
-
-function play(guild, song, message, voiceChannel) {
-    queueContruct.textChannel = message.channel
-    queueContruct.voiceChannel = message.member.voice.channel
-
-    const serverQueue = queue.get(guild.id);
-    if (!song) {
-        serverQueue.voiceChannel.leave();
-        queue.delete(guild.id);
-        return;
-    }
-
-    var connection = joinVoiceChannel({
-        channelId: message.member.voice.channel.id,
-        guildId: message.guild.id,
-        adapterCreator: message.guild.voiceAdapterCreator
-    });
-
-    queueContruct.connection = connection;
-
-    const player = createAudioPlayer({
-        behaviors: {
-            noSubscriber: NoSubscriberBehavior.Pause,
-        },
-    });
-
-    // exec("ffmpeg -i tmpvideo.mp4 tmpvideo.mp3", (error, stdout, stderr) => {
-    //     if (error) {
-    //         console.log(`error: ${error.message}`);
-    //         return;
-    //     }
-    //     if (stderr) {
-    //         console.log(`stderr: ${stderr}`);
-    //         return;
-    //     }
-    //     console.log(`stdout: ${stdout}`);
-    // });
-
-    const resource = createAudioResource('gout.mp3');
-    player.play(resource);
-
-    connection.subscribe(player);
-    message.channel.send(`Start playing: **${song.title}**`);
-}
 
 //----------------------------
 
@@ -372,6 +255,8 @@ async function UseItem(authormsg, item) {
     });
 }
 
+var chosencol, tchosencol; // "Time based embed" variables
+
 //---------------------------
 
 revade.client.on('messageCreate', async message => {
@@ -445,16 +330,15 @@ revade.client.on('messageCreate', async message => {
             .setImage(tchosen)
             .addFields(
                 { name: '`help`', value: 'Gives list of commands', inline: true },
-                { name: '`ping`', value: 'Checks on Latency ping and API Latency', inline: true },
                 { name: '`developers`', value: 'Shows the list of developers', inline: true },
                 { name: '`who`', value: 'Shows status of a user', inline: true },
-                { name: '`roles`', value: 'Prompts you with a decision for managing your roles', inline: true },
-                { name: '`info / schedule / information / ip`', value: 'Shows necessary information', inline: true },
+                //{ name: '`roles`', value: 'Prompts you with a decision for managing your roles', inline: true },
+                { name: '`info / schedule`', value: 'Shows necessary information', inline: true },
                 { name: '`rules`', value: 'Shows rules channel', inline: true },
                 { name: '`members / membercount`', value: 'Shows how many members are on the server', inline: true },
                 { name: '`compliment`', value: 'Gives you a random compliment', inline: true },
                 { name: 'Help pages', value: 'Other help pages' },
-                { name: '`voicehelp`', value: 'Gives list of voice commands', inline: true },
+                //{ name: '`voicehelp`', value: 'Gives list of voice commands', inline: true },
                 { name: '`modhelp`', value: 'Gives list of moderator commands', inline: true },
                 { name: '`rephelp`', value: 'Gives you your current reputation stats', inline: true },
                 { name: 'Note - ', value: 'If you need help, go to <#1007677814352396348> \n If you need to report, go to <#1003653159903842458>' }
@@ -468,49 +352,6 @@ revade.client.on('messageCreate', async message => {
         message.channel.send({ embeds: [helpEmbed] })
 
     }
-
-    /// HELP EMBED
-
-    //----------------------------
-
-    /// AUDIOHELP EMBED
-
-    if (command === 'voicehelp') {
-        message.reply("Sorry, this option is currently unavailable since the DisTube module is being worked on from the developers."); // temporary until distube is fixed
-        return;
-        var date = new Date();
-        var hour = date.getHours();
-
-        if (hour == 6 || hour == 7 || hour == 8 || hour == 9 || hour == 10 || hour == 11) { tchosen = syst.mor; tchosencol = '#96cf89'; }
-        if (hour == 12 || hour == 13 || hour == 14 || hour == 15 || hour == 16 || hour == 17) { tchosen = syst.aft; tchosencol = '#ff5858'; }
-        if (hour == 18 || hour == 19 || hour == 20 || hour == 21 || hour == 22 || hour == 23 || hour == 24 || hour == 0 || hour == 1 || hour == 2 || hour == 3 || hour == 4 || hour == 5) { tchosen = syst.eve; tchosencol = '#7b54b5'; }
-
-        // AUDIOHELP EMBED
-
-        console.log(syst.prefix)
-        const audioHelpEmbed = new EmbedBuilder()
-            .setColor(tchosencol)
-            .setTitle('Commands for Voice Channels / Music')
-            .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
-            .setDescription('**PREFIX:** `' + syst.prefix + '`\n List of available commands:')
-            .setImage(tchosen)
-            .addFields(
-                { name: '`play` `song`', value: 'Plays a song', inline: true },
-                { name: '`stop`', value: 'Stops incoming audio', inline: true },
-                { name: '`skip`', value: 'Skips the current song', inline: true },
-                { name: '`queue`', value: 'Shows the upcoming audio', inline: true },
-            )
-            .setFooter({ text: 'Revade - An Akripent Plaza Bot', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
-
-        // AUDIOHELP EMBED
-
-        //----------------------------
-
-        message.channel.send({ embeds: [audioHelpEmbed] })
-
-    }
-
-    /// HELP EMBED
 
     //----------------------------
 
@@ -602,7 +443,7 @@ revade.client.on('messageCreate', async message => {
             .setImage(tchosen)
             .addFields(
                 { name: '`inventory`', value: 'Shows your inventory', inline: true },
-                { name: '`buy`', value: 'Buy an item from the store (ri-buy item)', inline: true },
+                { name: '`purchase`', value: 'Buy an item from the store (ri-purchase item)', inline: true },
                 { name: '`store`', value: 'Shows purchasable items', inline: true },
                 { name: '`stats`', value: 'Gives you your current reputation stats', inline: true },
                 { name: '`use`', value: 'Use an item from your inventory (ri-use item)', inline: true },
@@ -654,22 +495,6 @@ revade.client.on('messageCreate', async message => {
 
 
     /// YOU COMMAND + EMBED
-
-    //----------------------------
-
-    /// PING COMMAND
-
-    if (command === 'ping') {
-        try {
-            message.channel.send(`**Revade's latency is ${Math.round(revade.client.ws.ping)} milliseconds.**`)
-        } catch (error) {
-            //revade.client.ws.ping null? LOL
-            message.channel.send("Could not check ping :(");
-            console.log(error);
-        }
-    }
-
-    /// PING COMMAND
 
     //----------------------------
 
@@ -777,141 +602,6 @@ revade.client.on('messageCreate', async message => {
     //BAN COMMAND
 
     //----------------------------
-
-    /// PLAY COMMAND
-
-    //  if (command === 'play') {
-    //      if (!args[0]) {
-    //          message.channel.send({ embeds: [embeds.errorEmptyMsgVoiceEmbed] });
-    //          return;
-    //      }
-
-    //      if (message.member.voice.channel.id != "942053210544308284") {
-    //          //----------------------------
-
-    //          // VOICESWITCHWARNING EMBED
-
-    //          const voiceSwitchWarningEmbed = new EmbedBuilder()
-    //              .setColor("#c6ad1e")
-    //              .setTitle('Action aborted')
-    //              .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
-    //              .setDescription('You are on another voice chat! You can only play music on the <#942053210544308284> channel⚠️')
-
-    //          // VOICESWITCHWARNING EMBED
-
-    //          //----------------------------
-
-    //          return message.reply({ embeds: [voiceSwitchWarningEmbed] });
-    //      }
-
-    //      if (!message.member.voice.channel) return message.reply({ embeds: [embeds.joinVoiceWarningEmbed] })
-
-    //      if (message.member.voice.channel.id != "932288625675206706") {
-    //          chanhol = message.member.voice.channel.id;
-    //          conhol = message.content;
-    //          tmpLastRequested = message.channel.id;
-    //          await distube.play(message.member.voice.channel, message.content, { textChannel: message.channel });
-    //      } else {
-    //          chanhol = message.member.voice.channel.id;
-    //          conhol = message.content;
-    //          tmpLastRequested = message.channel.id;
-    //          await distube.play(message.member.voice.channel, message.content, { textChannel: message.channel });
-    //          await message.guild.me.voice.setSuppressed(false);
-    //      }
-    //  }
-
-    /// PLAY COMMAND
-
-    //----------------------------
-
-    /// SKIP COMMAND
-    // 
-    //     if (command === 'skip') {// 
-    //         if (!message.member.voice.channel) return message.reply({ embeds: [embeds.joinVoiceWarningEmbed] })
-    // // 
-    //         if (message.member.voice.channel.id != "942053210544308284") {// 
-    //             //----------------------------
-    // // 
-    //             // VOICESWITCHWARNING EMBED
-    // // 
-    //             const voiceSwitchWarningEmbed = new EmbedBuilder()// 
-    //                 .setColor("#c6ad1e")// 
-    //                 .setTitle('Action aborted')// 
-    //                 .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })// 
-    //                 .setDescription('You cannot skip music if you are not on the <#942053210544308284> channel!⚠️')
-    // // 
-    //             // VOICESWITCHWARNING EMBED
-    // // 
-    //             //----------------------------
-    // // 
-    //             return message.reply({ embeds: [voiceSwitchWarningEmbed] });// 
-    //         }
-    // // 
-    //         const queue = distube.getQueue(message);// 
-    //         if (!queue) return message.reply({ embeds: [embeds.emptyQueueEmbed] })// 
-    //         if (queue.songs.length <= 1) return message.reply({ embeds: [embeds.emptyQueueEmbed] })// 
-    //         await distube.skip(message);// 
-    //         await message.channel.send({ embeds: [embeds.skipEmbed] })// 
-    //     }
-
-    /// SKIP COMMAND
-
-    //----------------------------
-
-    /// STOP COMMAND
-    // 
-    //     if (command === 'stop') {// 
-    //         if (!message.member.voice.channel) return message.reply({ embeds: [embeds.joinVoiceWarningEmbed] })
-    // // 
-    //         if (message.member.voice.channel.id != "942053210544308284") {// 
-    //             //----------------------------
-    // // 
-    //             // VOICESWITCHWARNING EMBED
-    // // 
-    //             const voiceSwitchWarningEmbed = new EmbedBuilder()// 
-    //                 .setColor("#c6ad1e")// 
-    //                 .setTitle('Action aborted')// 
-    //                 .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })// 
-    //                 .setDescription('You cannot stop music if you are not on the <#942053210544308284> channel!⚠️')
-    // // 
-    //             // VOICESWITCHWARNING EMBED
-    // // 
-    //             //----------------------------
-    // // 
-    //             return message.reply({ embeds: [voiceSwitchWarningEmbed] });// 
-    //         }
-    // // 
-    //         if (!distube.queue < 1) return message.reply({ embeds: [embeds.emptyQueueEmbed] })// 
-    //         const queue = distube.getQueue(message)// 
-    //         if (!queue) {// 
-    //             message.channel.send({ embeds: [embeds.nothingPlayingEmbed] })// 
-    //         } else {// 
-    //             await distube.stop(message);// 
-    //         }// 
-    //     }
-
-    /// STOP COMMAND
-
-    //----------------------------
-
-    /// QUEUE COMMAND
-    // 
-    //     if (command === 'queue') {// 
-    //         if (!message.member.voice.channel) return message.reply({ embeds: [embeds.joinVoiceWarningEmbed] })// 
-    //         const queue = distube.getQueue(message)// 
-    //         if (!queue) {// 
-    //             message.channel.send({ embeds: [embeds.nothingPlayingEmbed] })// 
-    //         } else {// 
-    //             const listQueueEmbed = new EmbedBuilder()// 
-    //                 .setColor("#959bef")// 
-    //                 .setTitle('Upcoming songs🎧')// 
-    //                 .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })// 
-    //                 .setDescription(queue.songs.map((song, id) => `**${id ? id : 'Now Playing:'}** ${song.name} - \`${song.formattedDuration}\``,).slice(0, 10).join('\n\n'));
-    // // 
-    //             message.channel.send({ embeds: [listQueueEmbed] })// 
-    //         }// 
-    //     }// 
-    /// QUEUE COMMAND
 
     /// POLL COMMANDS
 
@@ -1119,7 +809,6 @@ revade.client.on('messageCreate', async message => {
             .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
             .setDescription('To see the rules, go to <#632615154571411456>!')
         message.channel.send({ embeds: [rulesEmbed] })
-        message.delete();
     }
 
     //roles var
@@ -1138,63 +827,63 @@ revade.client.on('messageCreate', async message => {
     // COMPLIMENTS
 
     // TEST AREA //
-    if (command === 'roles') {
-        try {
-            const rowy = new ActionRowBuilder()
-                .addComponents(
-                    new SelectMenuBuilder()
-                        .setCustomId('select')
-                        .setPlaceholder('Click me!')
-                        .addOptions([
-                            {
-                                label: 'Roblox',
-                                description: 'Get notified for new Roblox feeds',
-                                value: 'first_option',
-                            },
+    // if (command === 'roles') {
+    //     try {
+    //         const rowy = new ActionRowBuilder()
+    //             .addComponents(
+    //                 new SelectMenuBuilder()
+    //                     .setCustomId('select')
+    //                     .setPlaceholder('Click me!')
+    //                     .addOptions([
+    //                         {
+    //                             label: 'Roblox',
+    //                             description: 'Get notified for new Roblox feeds',
+    //                             value: 'first_option',
+    //                         },
 
-                            {
-                                label: 'Twitter',
-                                description: 'Get notified for new Twitter feeds from Aki',
-                                value: 'second_option',
-                            },
+    //                         {
+    //                             label: 'Twitter',
+    //                             description: 'Get notified for new Twitter feeds from Aki',
+    //                             value: 'second_option',
+    //                         },
 
-                            {
-                                label: 'Twitch',
-                                description: 'Get notified for upcoming streams',
-                                value: 'third_option',
-                            },
+    //                         {
+    //                             label: 'Twitch',
+    //                             description: 'Get notified for upcoming streams',
+    //                             value: 'third_option',
+    //                         },
 
-                            {
-                                label: 'YouTube',
-                                description: 'Get notified for new YouTube videos',
-                                value: 'fourth_option',
-                            },
+    //                         {
+    //                             label: 'YouTube',
+    //                             description: 'Get notified for new YouTube videos',
+    //                             value: 'fourth_option',
+    //                         },
 
-                            {
-                                label: 'Announcements',
-                                description: 'Get notified for new information',
-                                value: 'fifth_option',
-                            },
+    //                         {
+    //                             label: 'Announcements',
+    //                             description: 'Get notified for new information',
+    //                             value: 'fifth_option',
+    //                         },
 
-                            {
-                                label: 'Art',
-                                description: 'Splish, splash, your drawing is a work of art!',
-                                value: 'sixth_option',
-                            },
+    //                         {
+    //                             label: 'Art',
+    //                             description: 'Splish, splash, your drawing is a work of art!',
+    //                             value: 'sixth_option',
+    //                         },
 
-                            {
-                                label: 'Minecraft',
-                                description: 'Get notified for new Minecraft feeds',
-                                value: 'seventh_option',
-                            }
-                        ]),
-                );
+    //                         {
+    //                             label: 'Minecraft',
+    //                             description: 'Get notified for new Minecraft feeds',
+    //                             value: 'seventh_option',
+    //                         }
+    //                     ]),
+    //             );
 
-            message.channel.send({ content: '**Choose the role you would like to modify below:**', components: [rowy] });
-        } catch (error) {
+    //         message.channel.send({ content: '**Choose the role you would like to modify below:**', components: [rowy] });
+    //     } catch (error) {
 
-        }
-    }
+    //     }
+    // }
 
     else if (command == 'fakejoin') { // fake boost func as...
         if (message.author.id == 991392397160349766 || message.author.id == 330398877645537282) {
@@ -1329,21 +1018,7 @@ revade.client.on('messageCreate', async message => {
         }, 3000);
     }
 
-    const serverQueue = queue.get(message.guild.id);
-
-    if (command.startsWith("play")) {
-        execute(message, serverQueue);
-    }
-
-    else if (command.startsWith("skip")) {
-        skip(message, serverQueue);
-    }
-
-    else if (command.startsWith("stop")) {
-        stop(message, serverQueue);
-    }
-
-    else if (command === 'stats' || command === 'statistics') {
+    if (command === 'stats' || command === 'statistics') {
         var whois;
         var who;
 
@@ -1515,14 +1190,21 @@ revade.client.on('messageCreate', async message => {
                         .setColor('#55ff55')
                         .setTitle('Store Page ' + pageh)
 
+                    var atLeastOneItem = false;
+
                     for (let i = 0; i < splitline.length; i++) {
                         if (splitline[i] != "" && priceline[i] != -1 && !(priceline[i].includes('-2')) && priceline[i] != undefined) {
+                            atLeastOneItem = true;
                             var thingy = splitline[i] + " (" + priceline[i] + " points)";
 
                             storeEmbed.addFields(
                                 { name: thingy, value: descline[i] }
                             )
                         }
+                    }
+
+                    if (atLeastOneItem == false) {
+                        return message.channel.send("There are no items at the store right now... :thinking:");
                     }
 
                     message.channel.send({ embeds: [storeEmbed] })

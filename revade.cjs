@@ -1,6 +1,5 @@
 const ms = require('ms'); const moment = require('moment'); // Wait libs
 const fs = require("fs"); // File management 
-const YouTubeNotifier = require('youtube-notification');
 
 const syst = require("./system.cjs"); //Token and some const variables
 const { Client, GatewayIntentBits, IntentsBitField, Partials, EmbedBuilder } = require('discord.js');
@@ -671,9 +670,9 @@ function start() {
         }
     });
 
+//----------------------------
+
     initEventCheck(); // Initializes Revade Events
-    //initLiveCheck(); // Initializes Twitch Live Check
-    //initVideoCheck(); // Initializes youtube-notifier
     initJoinCheck(); // Initializes the Join Detector
     initBoostCheck(); // Initializes the Boost Detector
     client.login(syst.token); // Login
@@ -1070,25 +1069,6 @@ function initBoostCheck() {
             }
         }
     });
-}
-
-function initVideoCheck() {
-    const notifier = new YouTubeNotifier({
-        hubCallback: 'https://example.com/youtube',
-        port: 8080,
-        secret: 'Something',
-        path: '/youtube'
-      });
-      notifier.setup();
-       
-      notifier.on('notified', data => {
-        console.log('New Video');
-        console.log(
-          `${data.channel.name} just uploaded a new video titled: ${data.video.title}`
-        );
-      });
-       
-      notifier.subscribe('channel_1');
 }
 
 //----------------------------
