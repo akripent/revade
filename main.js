@@ -256,6 +256,7 @@ async function UseItem(authormsg, item) {
 }
 
 var chosencol, tchosencol; // "Time based embed" variables
+var lastCountingNumber;
 
 //---------------------------
 
@@ -264,6 +265,54 @@ revade.client.on('messageCreate', async message => {
 
     revade.spamSystem(message);
     revade.linkChatRep(message);
+
+    if (message.channel.id == "1024246528807804979") {
+        fs.readFile('lastnumber.txt', 'utf8', (err, data) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            fs.readFile('lastauthor.txt', 'utf8', (err, audata) => {
+                if (err) {
+                  console.error(err);
+                  return;
+                }
+
+            if (!isNaN(message.content) && Number(data) < Number(message.content) && message.author.id != Number(audata) ) {
+                fs.writeFile('lastnumber.txt', message.content, err => {
+                    if (err) {
+                      console.error(err);
+                    }
+
+                    fs.writeFile('lastauthor.txt', message.author.id, err => {
+                        if (err) {
+                          console.error(err);
+                        }
+                    });
+                    
+                    message.react("✅");
+                });
+            } else {
+                message.channel.send("You broke the chain! :frowning2:")
+                message.react("❌");
+
+                fs.writeFile('lastnumber.txt', '0', err => {
+                    if (err) {
+                      console.error(err);
+                    }
+                });
+
+                fs.writeFile('lastauthor.txt', '0', err => {
+                    if (err) {
+                      console.error(err);
+                    }
+                });
+            }
+        });
+
+        });
+    } 
 
     if (!message.content.startsWith(syst.prefix)) return
     var args = message.content.slice(syst.prefix.length).trim().split(/ +/);

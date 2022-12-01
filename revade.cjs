@@ -986,49 +986,6 @@ function initEventCheck() {
     }, 5000);
 }
 
-function initLiveCheck() {
-        // Twitch Stage Check
-        var isLive = false
-
-        client.on('voiceStateUpdate', (oldMember, newMember) => {
-            let newUserChannel = newMember.channelId
-            let oldUserChannel = oldMember.channelId
-            let userid = newMember.id
-            let akridiki_id = "330398877645537282";
-    
-            if (newUserChannel == "932288625675206706") {
-                // Left
-                if (userid == akridiki_id) {
-                    client.channels.fetch(syst.twitchChannelID).then(channel => {
-                        channel.send({ embeds: [embeds.endStreamEmbed] })
-                    }).catch(err => {
-                        console.log(err);
-                    })
-    
-                    client.channels.fetch("1007978543080275990").then(channel => {
-                        channel.setName("Live 🔴")
-                    }).catch(err => {
-                        console.log(err);
-                    })
-                }
-            } else {
-                if (userid == akridiki_id) {
-                    client.channels.fetch(syst.twitchChannelID).then(channel => {
-                        channel.send({ embeds: [embeds.endStreamEmbed] })
-                    }).catch(err => {
-                        console.log(err);
-                    })
-    
-                    client.channels.fetch("1007978543080275990").then(channel => {
-                        channel.setName("Live ⚫")
-                    }).catch(err => {
-                        console.log(err);
-                    })
-                }
-            }
-        });
-}
-
 function initJoinCheck() {
     // New member
     client.on('guildMemberAdd', member => {
@@ -1178,6 +1135,6 @@ function spamSystem(message) {
 
 module.exports = {
     client, // extern variables
-    start, initEventCheck, initLiveCheck, initJoinCheck, initBoostCheck, // functions
+    start, initEventCheck, initJoinCheck, initBoostCheck, // functions
     linkChatRep, spamSystem // behind the scene systems
 };
