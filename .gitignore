@@ -1,0 +1,14 @@
+# Credentials
+system.cjs
+
+# Others
+changelog.txt
+
+# Commons and Privacy
+node_modules/
+
+events/*
+!events/events.md
+
+reputationsystem/*
+!reputationsystem/repsystem.md
