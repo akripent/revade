@@ -12,7 +12,7 @@
 
 // Requires ////
 const { createAudioResource, generateDependencyReport, createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel } = "@discordjs/voice";
-const { ButtonBuilder, ButtonStyle, ActivityType, EmbedBuilder, ActionRowBuilder, MessageButton, MessageAttachment, SelectMenuBuilder } = require('discord.js');
+const { ButtonBuilder, ButtonStyle, ActivityType, EmbedBuilder, ActionRowBuilder, MessageButton, MessageAttachment, SelectMenuBuilder, PresenceUpdateStatus } = require('discord.js');
 const moment = require('moment'); // Time Library
 const fs = require("fs"); // Filesystem Library
 
@@ -32,16 +32,17 @@ setInterval(function () {
     var hour = date.getHours();
     var tchosen;
 
-    if (hour == 6 || hour == 7 || hour == 8 || hour == 9 || hour == 10 || hour == 11) { tchosen = 'online'; }
-    if (hour == 12 || hour == 13 || hour == 14 || hour == 15 || hour == 16 || hour == 17) { tchosen = 'dnd'; }
-    if (hour == 18 || hour == 19 || hour == 20 || hour == 21 || hour == 22 || hour == 23 || hour == 24 || hour == 0 || hour == 1 || hour == 2 || hour == 3 || hour == 4 || hour == 5) { tchosen = 'idle'; }
+    if (hour == 6 || hour == 7 || hour == 8 || hour == 9 || hour == 10 || hour == 11) { tchosen = PresenceUpdateStatus.Online; }
+    if (hour == 12 || hour == 13 || hour == 14 || hour == 15 || hour == 16 || hour == 17) { tchosen = PresenceUpdateStatus.DoNotDisturb; }
+    if (hour == 18 || hour == 19 || hour == 20 || hour == 21 || hour == 22 || hour == 23 || hour == 24 || hour == 0 || hour == 1 || hour == 2 || hour == 3 || hour == 4 || hour == 5) { tchosen = PresenceUpdateStatus.Idle; }
 
     try {
-        revade.client.user.setPresence({ status: tchosen, activity: { name: syst.StatusText, type: syst.StatusType } });
+    	revade.client.user.setPresence({ activities: [{ name: syst.StatusText }], status: pchosen });
+        revade.client.user.setActivity(syst.StatusText, { type: ActivityType.Listening });
     } catch (error) {
         console.log(error);
     }
-}, 10000);
+}, 60000);
 
 //----------------------------
 
