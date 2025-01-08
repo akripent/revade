@@ -11,4 +11,5 @@ git commit -m desc
 echo "PUSHING!!!"
 
 # Your push command (i have an alias)
+shopt -s expand_aliases
 uprevade
