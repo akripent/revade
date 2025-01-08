@@ -1,7 +1,3 @@
-// Revade by davidlao and althruist (C) 2022-2024
-// Released under CC0 since 2022
-// Revision of this code is: Revade 10 Valletta
-
 const ms = require('ms'); const moment = require('moment'); // Wait libs
 const fs = require("fs"); // File management 
 
