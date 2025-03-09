@@ -1,1 +1,1 @@
-testprize,perks-1,perks-2,perks-3,perks-4,perks-5,perks-1y,perks-2y,perks-3y,perks-4y,perks-5y,
+testprize,

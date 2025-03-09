@@ -1,6 +1,1 @@
-# Give a role
-# say: giving test role
-# role: 1008768852215205928
-# say: given <@&1008768852215205928>
-
-say: test 1 2 3
+say: You tested it. Now what?

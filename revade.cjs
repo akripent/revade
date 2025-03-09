@@ -2,7 +2,7 @@ const ms = require('ms'); const moment = require('moment'); // Wait libs
 const fs = require("fs"); // File management 
 
 const syst = require("./system.cjs"); //Token and some const variables
-const { Client, GatewayIntentBits, IntentsBitField, Partials, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, IntentsBitField, Partials, EmbedBuilder, PresenceUpdateStatus, ActivityType } = require('discord.js');
 
 const myIntents = new IntentsBitField();
 myIntents.add(GatewayIntentBits.DirectMessages, GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildBans, GatewayIntentBits.MessageContent, IntentsBitField.Flags.GuildMembers, GatewayIntentBits.GuildMessageReactions);
@@ -18,17 +18,15 @@ function start() {
 
     // Get current time
     var pdate = new Date(); var phour = pdate.getHours(); var pchosen;
-    if (phour == 6 || phour == 7 || phour == 8 || phour == 9 || phour == 10 || phour == 11) { pchosen = 'online'; }
-    if (phour == 12 || phour == 13 || phour == 14 || phour == 15 || phour == 16 || phour == 17) { pchosen = 'dnd'; }
-    if (phour == 18 || phour == 19 || phour == 20 || phour == 21 || phour == 22 || phour == 23 || phour == 24 || phour == 0 || phour == 1 || phour == 2 || phour == 3 || phour == 4 || phour == 5) { pchosen = 'idle'; }
+    if (phour == 6 || phour == 7 || phour == 8 || phour == 9 || phour == 10 || phour == 11) { pchosen = PresenceUpdateStatus.Online; }
+    if (phour == 12 || phour == 13 || phour == 14 || phour == 15 || phour == 16 || phour == 17) { pchosen = PresenceUpdateStatus.DoNotDisturb; }
+    if (phour == 18 || phour == 19 || phour == 20 || phour == 21 || phour == 22 || phour == 23 || phour == 24 || phour == 0 || phour == 1 || phour == 2 || phour == 3 || phour == 4 || phour == 5) { pchosen = PresenceUpdateStatus.Idle; }
 
     client.once('ready', () => {
         console.log('\u001b[' + 32 + 'm' + 'Revade' + '\u001b[0m' + ' is ready!');
     
-        client.user.setPresence({
-            activities: [{ name: syst.StatusText, type: syst.StatusType }],
-            status: pchosen,
-        });
+        client.user.setPresence({ activities: [{ name: syst.StatusText }], status: pchosen });
+	client.user.setActivity(syst.StatusText, { type: ActivityType.Listening });
     
         //     distube
     
@@ -690,6 +688,11 @@ function initEventCheck() {
         //console.log(hour + ":" + minutes + " " + day + "/" + month + "/" + year)
 
         fs.readdir("./events/", async (err, files) => {
+        
+            if (err) {
+		return;
+	    }
+        
             files.forEach(async filename => {
                 fs.readFile('events/' + filename, 'utf8', async (err, data) => {
                     if (err) {
