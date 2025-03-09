@@ -688,6 +688,11 @@ function initEventCheck() {
         //console.log(hour + ":" + minutes + " " + day + "/" + month + "/" + year)
 
         fs.readdir("./events/", async (err, files) => {
+        
+            if (err) {
+		return;
+	    }
+        
             files.forEach(async filename => {
                 fs.readFile('events/' + filename, 'utf8', async (err, data) => {
                     if (err) {

@@ -1,5 +1,5 @@
 function showVersion() {
-console.log("You are running Revade 10.1.1 (8 Jan. 2025)")
+console.log("You are running Revade 10.1.1 (9th March 2025)")
 }
 
 // Revade Dev Bot Token
@@ -13,4 +13,14 @@ prefix = "ri-"
 // eg: Revade, a (serverOwner) bot.
 serverOwner = "Revade Development & News"
 
-module.exports = {showVersion: showVersion, token: token, prefix: prefix, serverOwner: serverOwner, StatusText: prefix };
+// Admins: what user IDs will be able to manage privileged commands? (CAUTION!)
+admins = []
+
+// rulesChannelId: what is the Channel ID for your rules?
+// eg: "1318657272079192125" (You can right click a channel to Copy Channel ID as long as you have Developer Mode)
+rulesChannelId = "1318657272079192125"
+
+// Codename: Basically tells you current Revade revision
+codename = "Revade 10 Valletta"
+
+module.exports = {showVersion: showVersion, token: token, prefix: prefix, serverOwner: serverOwner, StatusText: prefix + "help", codename: codename, rulesChannelId: rulesChannelId, admins: admins };

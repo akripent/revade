@@ -1,3 +1,17 @@
+const { EmbedBuilder } = require('discord.js');
+
+function useModule(message, command) {
+	if (command === 'compliment') {
+		var chosenbtw = Math.floor(Math.random() * ((list.length - 1) - 0) + 0);
+
+		const compliEmbed = new EmbedBuilder()
+		    .setColor('#deecf5')
+		    .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+		    .setDescription(list[chosenbtw])
+		message.channel.send({ embeds: [compliEmbed] })
+	}
+}
+
 var list = [
     "You\'re that \"Nothing\" when people ask me what I\'m thinking about.",
     "You look great today.",
@@ -27,10 +41,8 @@ var list = [
     "You\'re a great listener.",
     "Everything would be better if more people were like you!",
     "You were cool way before hipsters were cool.",
-    "That color is perfect on you.",
     "Hanging out with you is always a blast.",
     "You always know - and say - exactly what I need to hear when I need to hear it.",
-    "You may dance like no one\'s watching, but everyone\'s watching because you\'re an amazing dancer!",
     "Being around you makes everything better!",
     "When you say, \"I meant to do that,\" I totally believe you.",
     "When you\'re not afraid to be yourself is when you\'re most incredible.",
@@ -38,12 +50,10 @@ var list = [
     "That thing you don\'t like about yourself is what makes you so interesting.",
     "You\'re wonderful.",
     "Jokes are funnier when you tell them.",
-    "You\'re better than a triple-scoop ice cream cone. With sprinkles.",
     "Your hair looks stunning.",
     "You\'re one of a kind!",
     "You\'re inspiring.",
     "You should be thanked more often. So, thank you!",
-    "Our community is better because you\'re in it.",
     "Someone is getting through something hard right now because you\'ve got their back.",
     "You have the best ideas.",
     "Everyone gets knocked down sometimes, but you always get back up and keep going.",
@@ -53,13 +63,13 @@ var list = [
     "You always know just what to say.",
     "You\'re always learning new things and trying to better yourself, which is awesome.",
     "You\'re more fun than bubble wrap.",
-    "When you make a mistake, you fix it.",
+    "When you make a mistake, you always find a way to fix it.",
     "Who raised you? They deserve a medal for a job well done.",
     "You\'re great at figuring stuff out.",
     "The people you love are lucky to have you in their lives.",
     "You\'re like a breath of fresh air.",
     "You\'re gorgeous - and that\'s the least interesting thing about you, too.",
-    "Youvre so thoughtful.",
+    "You're so thoughtful.",
     "Your creative potential seems limitless.",
     "You\'re the coolest person I know.",
     "Actions speak louder than words, and yours tell an incredible story.",
@@ -79,5 +89,6 @@ var list = [
 ];
 
 module.exports = {
-    list
+    list: list,
+    useModule: useModule
 };
