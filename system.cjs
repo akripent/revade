@@ -14,7 +14,7 @@ prefix = "ri-"
 serverOwner = "Revade Development & News"
 
 // Codename: Basically tells you current Revade revision
-codename = "Revade 11 Valletta"
+codename = "Revade 11 Canary"
 
 // botName: what will revade reference "Revade" as?
 // eg: "Not Revade" will show "Not Revade - a (serverOwner) bot"

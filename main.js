@@ -143,6 +143,7 @@ revade.client.on('messageCreate', async message => {
                 { name: '`who`', value: 'Shows status of a user', inline: true },
                 { name: '`rules`', value: 'Shows rules channel', inline: true },
                 { name: '`members`', value: 'Shows how many members are on the server', inline: true },
+                { name: '`version`', value: 'Shows current bot codename', inline: true },
                 { name: '`mod/list`', value: 'Lists modules installed' },
                 { name: '`mod/update`', value: 'Runs modules update check. WARNING: If an update does proceed, ' + syst.botName + ' shuts down, so you will need to either manually start it again or setup a service that auto-starts again once it detects a shutdown' }
             )
