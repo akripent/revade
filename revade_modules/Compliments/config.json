@@ -1,0 +1,14 @@
+{
+"version": "1.1.0",
+
+"updateUrl": "https://raw.githubusercontent.com/n3x4z/revade_compliments/refs/heads/main/module.zip",
+
+"hashVersion": "3378f746c40a6da093b2101783d0a3e3dc9c8befbc3e2d7796b948221ac391a2",
+
+"description": "Compliments to keep your day happy :)",
+
+"exposes": {
+  "compliment": "Gives you a compliment"
+}
+
+}

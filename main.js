@@ -2,13 +2,13 @@
 // main code + internals by davidlao
 // part of the code + design by Akridiki
 
-// As of the 29th of November 2022,
-// Revade is now licensed under CC Zero (Public Domain)
+// As of the 24th of April 2025,
+// Revade is now licensed under Apache 2.0 License
 
 // Revade comes with NO WARRANTY.
 // Any issues with the project should be filed to the
 // page of said distributor's project
-// (for the official Revade, see akripent@GitHub's revade)
+// (for the official Revade, see akripent organization @ GitHub)
 
 // Requires ////
 const { ActivityType, EmbedBuilder, PresenceUpdateStatus } = require('discord.js');
@@ -16,15 +16,10 @@ const { ActivityType, EmbedBuilder, PresenceUpdateStatus } = require('discord.js
 // REQUIRED External Revade Modules
 const revade = require("./revade.cjs"); // IMPORTANT: Initialization and misc.
 const syst = require("./system.cjs"); //Token and some const variables
+const path = require('path');
+const fs = require('fs'); // Filesystem stuff from Node.JS
 
-// -------------------------------
-// User-generated Revade modules
-// Usually modules are just 1. insert as require & 2. Add line to ... client.on('messageCreate'
-// Additionally, 1. some may require you to install npm libraries & 2. modules may not always follow all these points
-// !!! --- ALWAYS check a module's code before using it to avoid MALICIOUS CODE --- !!!
-const compliments = require("./compliments.cjs"); // Official Compliments Module. Have a happy day!
-const moderation = require("./moderation.cjs"); // Official Moderation Module
-const socialstore = require("./socialstore.cjs"); // Official Socialize & Store Module (Speak to earn server items)
+//
 // -------------------------------
 
 // Initialize Revade //
@@ -42,7 +37,7 @@ setInterval(function () {
     if (hour == 18 || hour == 19 || hour == 20 || hour == 21 || hour == 22 || hour == 23 || hour == 24 || hour == 0 || hour == 1 || hour == 2 || hour == 3 || hour == 4 || hour == 5) { tchosen = PresenceUpdateStatus.Idle; }
 
     try {
-    	revade.client.user.setPresence({ activities: [{ name: syst.StatusText }], status: tchosen });
+        revade.client.user.setPresence({ activities: [{ name: syst.StatusText }], status: tchosen });
         revade.client.user.setActivity(syst.StatusText, { type: ActivityType.Listening });
     } catch (error) {
         console.log(error);
@@ -61,17 +56,26 @@ var lastCountingNumber;
 revade.client.on('messageCreate', async message => {
     if (message.author.bot || message.guild === null) return
 
-    revade.spamSystem(message);
+    if (syst.enableSpamSystem === true) {
+        revade.spamSystem(message);
+    }
+
+    // to be worked on
     revade.linkChatRep(message);
 
     if (!message.content.startsWith(syst.prefix)) return
     var args = message.content.slice(syst.prefix.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
-    
-    // User module processing functions //
-    compliments.useModule(message, command);
-    moderation.useModule(message, command);
-    socialstore.useModule(message, command);
+
+    // User module processing function //
+    // Loop through all the loaded modules and run `UseModule` if it exists
+    Object.keys(revade.modules).forEach((moduleName) => {
+        const module = revade.modules[moduleName];
+
+        if (typeof module.useModule === 'function') {
+            module.useModule(message, command);  // Execute the function for module if it exists
+        }
+    });
 
     //----------------------------
 
@@ -91,7 +95,7 @@ revade.client.on('messageCreate', async message => {
         const devEmbed = new EmbedBuilder()
             .setColor(tchosencol)
             .setTitle('The Revade Developers')
-            .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+            .setAuthor({ name: syst.botName, iconURL: syst.botIcon })
             .setDescription('These are the developers and all the people who helped and/or supported this project!')
             .setImage(tchosen)
             .addFields(
@@ -100,7 +104,7 @@ revade.client.on('messageCreate', async message => {
                 { name: '`Contributors/Community`', value: '**__Thank you:__** to anyone who has ever helped shape Revade, directly/indirectly! :)' },
             )
 
-            .setFooter({ text: 'Revade - a ' + syst.serverOwner + ' bot', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+            .setFooter({ text: syst.botName + ' - a ' + syst.serverOwner + ' bot', iconURL: syst.botIcon })
 
         // DEVELOPER EMBED
 
@@ -129,8 +133,8 @@ revade.client.on('messageCreate', async message => {
 
         const helpEmbed = new EmbedBuilder()
             .setColor(tchosencol)
-            .setTitle('Commands for Revade')
-            .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+            .setTitle('Commands for ' + syst.botName)
+            .setAuthor({ name: syst.botName, iconURL: syst.botIcon })
             .setDescription('**PREFIX:** `' + syst.prefix + '` \n List of available commands:')
             .setImage(tchosen)
             .addFields(
@@ -139,9 +143,23 @@ revade.client.on('messageCreate', async message => {
                 { name: '`who`', value: 'Shows status of a user', inline: true },
                 { name: '`rules`', value: 'Shows rules channel', inline: true },
                 { name: '`members`', value: 'Shows how many members are on the server', inline: true },
-                { name: 'Help pages', value: 'For additional external modules please refer to their command list or help command' }
+                { name: '`mod/list`', value: 'Lists modules installed' },
+                { name: '`mod/update`', value: 'Runs modules update check. WARNING: If an update does proceed, ' + syst.botName + ' shuts down, so you will need to either manually start it again or setup a service that auto-starts again once it detects a shutdown' }
             )
-            .setFooter({ text: 'Revade - a ' + syst.serverOwner + ' bot', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+            .setFooter({ text: syst.botName + ' - a ' + syst.serverOwner + ' bot', iconURL: syst.botIcon })
+
+        // Here go exposes from modules' config.json:
+        revade.modules_config.forEach(({ name, config }) => {
+            const exposes = config.exposes;
+
+            Object.entries(exposes).forEach(([command, helpText]) => {
+                helpEmbed.addFields({
+                    name: "`" + command + "`",
+                    value: helpText,
+                    inline: true
+                });
+            });
+        });
 
         // HELP EMBED
 
@@ -176,25 +194,29 @@ revade.client.on('messageCreate', async message => {
                     { name: 'Tag', value: `${member.user.tag}`, inline: true },
                     { name: 'ID:', value: `${member.id}`, inline: true },
                     { name: 'Nickname:', value: `${member.nickname !== null ? `${member.nickname}` : 'None'}`, inline: true },
-                    { name: 'Joined on:', value: member.joinedAt.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    }), inline: true },
+                    {
+                        name: 'Joined on:', value: member.joinedAt.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        }), inline: true
+                    },
 
-                    { name: 'Account Creation Date:', value: member.user.createdAt.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    }), inline: true },
-                    
+                    {
+                        name: 'Account Creation Date:', value: member.user.createdAt.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        }), inline: true
+                    },
+
                     { name: 'Roles:', value: " ` ` " + listedRoles.join(" ` ` ") + " ` ` ", inline: false }
                 ])
 
-                .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
-                .setFooter({ text: 'Revade - a ' + syst.serverOwner + ' bot', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+                .setAuthor({ name: syst.botName, iconURL: syst.botIcon })
+                .setFooter({ text: syst.botName + ' - a ' + syst.serverOwner + ' bot', iconURL: syst.botIcon })
 
             message.channel.send({ embeds: [embed] })
         } catch (error) {
@@ -213,7 +235,7 @@ revade.client.on('messageCreate', async message => {
 
         const rulesEmbed = new EmbedBuilder()
             .setColor('#b4ace7')
-            .setAuthor({ name: 'Revade', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+            .setAuthor({ name: syst.botName, iconURL: syst.botIcon })
             .setDescription('To see the rules, go to <#' + syst.rulesChannelId + '>!')
         message.channel.send({ embeds: [rulesEmbed] })
     }
@@ -245,6 +267,50 @@ revade.client.on('messageCreate', async message => {
                         }, 4000);
                 }, 2000);
         }, 2000);
+    }
+
+    else if (command === 'mod/list') {
+        var date = new Date();
+        var hour = date.getHours();
+        var tchosen;
+
+        if (hour == 6 || hour == 7 || hour == 8 || hour == 9 || hour == 10 || hour == 11) { tchosen = syst.mor; tchosencol = '#96cf89'; }
+        if (hour == 12 || hour == 13 || hour == 14 || hour == 15 || hour == 16 || hour == 17) { tchosen = syst.aft; tchosencol = '#ff5858'; }
+        if (hour == 18 || hour == 19 || hour == 20 || hour == 21 || hour == 22 || hour == 23 || hour == 24 || hour == 0 || hour == 1 || hour == 2 || hour == 3 || hour == 4 || hour == 5) { tchosen = syst.eve; tchosencol = '#7b54b5'; }
+
+        const modsEmbed = new EmbedBuilder()
+            .setColor(tchosencol)
+            .setTitle('Installed modules')
+            .setAuthor({ name: syst.botName, iconURL: syst.botIcon })
+            .setDescription('You have installed the following modules:')
+            .setImage(tchosen)
+            .setFooter({ text: syst.botName + ' - a ' + syst.serverOwner + ' bot', iconURL: syst.botIcon })
+
+        // Here go modules by name and conf:
+        revade.modules_config.forEach(({ name, config }) => {
+            const exposes = config.exposes;
+
+            modsEmbed.addFields({
+                name: "`" + name + "` (" + config.version + ")",
+                value: config.description + "\n\n*This module exposes " + Object.keys(config.exposes).map(key => "**" + syst.prefix + key + "**").join(', ') + "*",
+                inline: true
+            });
+        });
+
+        message.channel.send({ embeds: [modsEmbed] })
+    }
+
+    else if (command === 'mod/update') {
+        message.channel.send("Checking for module updates...")
+
+        const modulesUpdated = await revade.checkModuleUpdates(revade.modules_config);
+
+        if (modulesUpdated) {
+            message.channel.send("Some modules were updated. Shutting down.")
+            process.exit();
+        } else {
+            message.channel.send("No available updates - you are up to date :)")
+        }
     }
 });
 

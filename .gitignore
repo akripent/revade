@@ -1,5 +1,8 @@
 # Commons and Privacy
 node_modules/
+package.json
+package-lock.json
+*.sh
 
 events/*
 !events/events.md
