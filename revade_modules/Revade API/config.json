@@ -1,0 +1,14 @@
+{
+"version": "1.0.0",
+
+"updateUrl": "https://raw.githubusercontent.com/n3x4z/revade_api/refs/heads/main/module.zip",
+
+"hashVersion": "734f8d1c1d763aca418687986903250f02253dcf1051328d3d8da1be053e7d6c",
+
+"description": "Hosts the Revade General RESTful API for",
+
+"port": 7773,
+
+"exposes": { }
+
+}

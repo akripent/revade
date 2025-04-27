@@ -1,5 +1,5 @@
 function showVersion() {
-console.log("You are running Revade 11.1.0 (27th April 2025)")
+console.log("You are running Revade 11.2.0 (27th April 2025)")
 }
 
 // Revade Dev Bot Token

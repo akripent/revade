@@ -4,6 +4,7 @@ const https = require('https'); // In order to download files
 
 const syst = require("./system.cjs"); //Token and some const variables
 const { Client, GatewayIntentBits, IntentsBitField, Partials, EmbedBuilder, PresenceUpdateStatus, ActivityType } = require('discord.js');
+const { moduleStartup } = require("./revade_modules/Revade API/main.cjs");
 
 const myIntents = new IntentsBitField();
 myIntents.add(GatewayIntentBits.DirectMessages, GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildBans, GatewayIntentBits.MessageContent, IntentsBitField.Flags.GuildMembers, GatewayIntentBits.GuildMessageReactions);
@@ -139,6 +140,16 @@ async function start() {
     
         await client.user.setPresence({ activities: [{ name: syst.StatusText }], status: pchosen });
 	    await client.user.setActivity(syst.StatusText, { type: ActivityType.Listening });
+
+        // Upon startup, run startup func if it exists
+        // for each module installed
+        Object.keys(modules).forEach((moduleName) => {
+            const module = modules[moduleName];
+        
+            if (typeof module.moduleStartup === 'function') {
+                module.moduleStartup(modules_config);
+            }
+        });
     });
 
 //----------------------------
@@ -241,5 +252,5 @@ module.exports = {
     client, // extern variables
     start, initJoinCheck, initBoostCheck, // General functions
     spamSystem, // behind the scene systems
-    checkModuleUpdates, modules_config, modules // Module system updates
+    checkModuleUpdates, modules_config, modules, loadModuleConfigs // Module system updates
 };
