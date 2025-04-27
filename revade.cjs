@@ -1,4 +1,3 @@
-const ms = require('ms'); const moment = require('moment'); // Wait libs
 const fs = require("fs"); const path = require('path'); // File management
 const decompress = require("decompress"); // Unzipping and all that
 const https = require('https'); // In order to download files
@@ -88,7 +87,7 @@ async function checkModuleUpdates(modules_config) {
 
     // Use Promise.all to wait for all checks to complete
     await Promise.all(modules_config.map(async ({ name, config }) => {
-        console.log(`Module ${name} (${config.version}) loading`);
+        console.log(`Module ${name} \x1b` + syst.versionTheme + `(${config.version})\x1b[0m loading`);
 
         try {
             let responseReq = await fetch(config.updateUrl.replace("module.zip", "hashfile.txt"));
@@ -96,10 +95,10 @@ async function checkModuleUpdates(modules_config) {
 
             if (config.hashVersion.trim() == response.trim()) {
                 // Up to date
-                console.log(`Module ${name} (${config.version}) loaded! (up to date)`);
+                console.log(`Module ${name}` + '\x1b' + syst.versionTheme + ` (${config.version})\x1b[0m` + ' loaded! (up to date)');
             } else {
                 // Outdated
-                console.log(`Module ${name} (${config.version}) on hold (updating)`);
+                console.log(`Module ${name} on hold (updating)`);
                 hasUpdates = 1; // Set to 1 if any module has updates
 
                 await proceedToUpdate(name, config.updateUrl)
@@ -136,7 +135,7 @@ async function start() {
     if (phour == 18 || phour == 19 || phour == 20 || phour == 21 || phour == 22 || phour == 23 || phour == 24 || phour == 0 || phour == 1 || phour == 2 || phour == 3 || phour == 4 || phour == 5) { pchosen = PresenceUpdateStatus.Idle; }
 
     client.once('ready', async () => {
-        console.log('\u001b[' + 32 + 'm' + 'Revade' + '\u001b[0m' + ' is ready!');
+        console.log('\x1b' + syst.botTheme + 'Revade\x1b[0m is ready!');
     
         await client.user.setPresence({ activities: [{ name: syst.StatusText }], status: pchosen });
 	    await client.user.setActivity(syst.StatusText, { type: ActivityType.Listening });
@@ -152,16 +151,14 @@ async function start() {
 function initJoinCheck() {
     // New member
     client.on('guildMemberAdd', member => {
-        member.roles.add('889932834905661440');
-
         try {
             const welcomeEmbed = new EmbedBuilder()
                 .setColor('#f6f4c6')
-                .setTitle(member.user.tag + ' joined the plazakins!💛')
+                .setTitle(member.user.tag + ' joined the server!')
                 .setAuthor({ name: 'A message from Revadee', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
                 .setDescription('We are all happy to see you!')
 
-            member.guild.channels.cache.get('956255050169221190').send({ embeds: [welcomeEmbed] });
+            member.guild.channels.cache.get(syst.welcomeChannel).send({ embeds: [welcomeEmbed] });
         } catch (error) {
             console.log(error)
         }
@@ -178,72 +175,16 @@ function initBoostCheck() {
             try {
                 const boostEmbed = new EmbedBuilder()
                     .setColor('#f8d9f5')
-                    .setTitle(newMember.user.tag + ' Boosted the server! Thank you so much! 💛')
-                    .setAuthor({ name: 'A message from Revadee', iconURL: 'https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png' })
+                    .setTitle(newMember.user.tag + ' Boosted the server! Thank you so much!')
+                    .setAuthor({ name: 'A message from ' + syst.botName, iconURL: syst.botIcon })
                     .setDescription('Check your cool perks in the Boosters category!')
 
-                newMember.roles.add('1002229242723049585');
-                newMember.guild.channels.cache.get('1001601669685067966').send({ embeds: [boostEmbed] });
+                newMember.guild.channels.cache.get(syst.welcomeChannel).send({ embeds: [boostEmbed] });
             } catch (error) {
                 console.log(error)
             }
         }
     });
-}
-
-//----------------------------
-var ids = []; // ID of chatters
-//----------------------------
-
-function linkChatRep(message) {
-    if (!ids.includes(message.author.id)) {
-        ids.push(message.author.id);
-    } else {
-        for (let i = 0; i < ids.length; i++) {
-            if(ids[i] == message.author.id) {
-                var calc_rep = ((message.content.split(" ").length / 10) * 2);
-
-                if (calc_rep > 0.49) {
-                    // Check if data.txt exists first
-                    if (!fs.existsSync('reputationsystem/' + message.author.id)) {
-                        fs.mkdirSync('reputationsystem/' + message.author.id);
-                    }
-
-                    if (!fs.existsSync('reputationsystem/' + message.author.id + "/data.txt")) {
-                        fs.writeFile('reputationsystem/' + message.author.id + "/data.txt", '1,1', err => {
-                            if (err) {
-                              console.error(err);
-                            }
-                            
-                            // Finished creating and giving rep //
-                            // Just because the user is brand new, it's that easy! //
-                            // Simply return as we need no more. //
-                            return
-                          });                          
-                    }
-
-                    // File exists, we have to read and write... pfff BOOORINGGG
-                    fs.readFile('reputationsystem/' + message.author.id + '/data.txt', 'utf8', (err, data) => {
-                        if (err) {
-                            console.error(err);
-                            return;
-                        }
-            
-                        // Succeeded reading //
-                        var rep = data.split(',')[0]
-                        var poi = data.split(',')[1]
-    
-                        fs.writeFile('reputationsystem/' + message.author.id + "/data.txt", (Number(rep) + 1).toString() + "," + (Number(poi) + 1).toString(), (err) => {
-                            if (err) {
-                                console.error(err);
-                                return;
-                            }
-                        });
-                    });
-                }
-            }
-        }
-    }
 }
 
 // ---- Spam System --------------- //
@@ -299,6 +240,6 @@ function spamSystem(message) {
 module.exports = {
     client, // extern variables
     start, initJoinCheck, initBoostCheck, // General functions
-    linkChatRep, spamSystem, // behind the scene systems
+    spamSystem, // behind the scene systems
     checkModuleUpdates, modules_config, modules // Module system updates
 };

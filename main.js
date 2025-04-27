@@ -60,9 +60,6 @@ revade.client.on('messageCreate', async message => {
         revade.spamSystem(message);
     }
 
-    // to be worked on
-    revade.linkChatRep(message);
-
     if (!message.content.startsWith(syst.prefix)) return
     var args = message.content.slice(syst.prefix.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();

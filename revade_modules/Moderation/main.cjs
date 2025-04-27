@@ -4,6 +4,11 @@ const { EmbedBuilder } = require('discord.js');
 async function useModule(message, command) {
 	if (command === 'purge') {
         try {
+            if (message.content.split(" ")[1] == null) {
+                message.reply("Please specify how much to purge `" + syst.prefix + "purge (amount)`")
+                return
+            }
+
             let deleteamount = message.content.split(syst.prefix + "purge")[1];
             if (message.member.permissions.has(["KickMembers"])) {
                 if (parseInt(deleteamount <= 0)) return message.reply({ embeds: [embeds.failedEmbed] })

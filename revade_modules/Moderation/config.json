@@ -1,9 +1,9 @@
 {
-"version": "1.1.0",
+"version": "1.2.0",
 
 "updateUrl": "https://raw.githubusercontent.com/n3x4z/revade_moderation/refs/heads/main/module.zip",
 
-"hashVersion": "3e212670ee5e9c0cb6f2dd715dfcdc46944d8f72bdfc40456b6838ed8eae04ed",
+"hashVersion": "ba126cb651cb2bf0c2a12f11b57df6d2544ebe21ed92d52ca3564c7ffe7eb4f9",
 
 "description": "Moderation management commands for Revade. Includes banning, kicking, purging messages and timeout.",
 

@@ -1,5 +1,5 @@
 function showVersion() {
-console.log("You are running Revade 11.0.0 (27th April 2025)")
+console.log("You are running Revade 11.1.0 (27th April 2025)")
 }
 
 // Revade Dev Bot Token
@@ -23,6 +23,10 @@ botName = "Revade"
 // botIcon: what image will Revade use as logo in embeds?
 botIcon = "https://raw.githubusercontent.com/Akridiki/Revade/main/Logo.png"
 
+// Various ANSI colors: mostly for the CLI part
+botTheme = "[32m" // [0m is green
+versionTheme = "[33m" // yellow
+
 // Admins: what user IDs will be able to manage privileged commands? (CAUTION!)
 admins = []
 
@@ -33,4 +37,7 @@ enableSpamSystem = true; // Use Revade's Spam Detection System?
 // eg: "1318657272079192125" (You can right click a channel to Copy Channel ID as long as you have Developer Mode)
 rulesChannelId = "1318657272079192125"
 
-module.exports = {showVersion: showVersion, token: token, prefix: prefix, serverOwner: serverOwner, botName: botName, botIcon: botIcon, StatusText: prefix + "help", codename: codename, rulesChannelId: rulesChannelId, admins: admins, enableSpamSystem: enableSpamSystem };
+// welcomeChannel: what is the Channel ID for new user joins?
+// Also used for server boosts!
+welcomeChannel = "1318656940884234322"
+module.exports = {showVersion: showVersion, token: token, prefix: prefix, serverOwner: serverOwner, botName: botName, botIcon: botIcon, StatusText: prefix + "help", codename: codename, botTheme: botTheme, versionTheme: versionTheme, rulesChannelId: rulesChannelId, admins: admins, enableSpamSystem: enableSpamSystem };
