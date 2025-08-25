@@ -1,6 +1,9 @@
-# Revade Canary
-Welcome to the Revade Canary repository. You are seeing the testbed for Revade Stable. Some things are expected to fail.
-<br>
-If you're an experienced at finding code issues, you can set the project up with your knowledge (though ideally a matter of node main.js, provided you have all the npm packages the code requires installed) and if you have any suggestions you'd like us to consider, to add or modify existing functionality in the open source code, go ahead! We appreciate feedback!
-<br><br>
-There is a documentation page (WIP) available at https://akripent.github.io/docs/
+# :( Revade is now archived
+Revade's main and only contributors are no longer giving support to the codebase.<br><br>
+It's been a good 3 years supporting Revade with varying degrees of staying up to date - and we think it's best to stop updating Revade for good. No specific issues are going to be mentioned here - but see the code for yourself
+## What about the code?
+The code is and will always be free and open source, and no changes will be done. The only place you can get the source code from is this repository. However, (and we don't know when), we may delete the repository eventually (we don't plan to for now), so if you wish to keep your right to keep updating Revade by yourself or are planning to continue developing features yourself - it's best you download the source code and start a new repository (any credit to Revade's legacy is appreciated)
+## What now?
+We are continuously working on other new projects, mostly separate from eachother. If of interest, check out (as of writing this) our portofolios:<br><br>
+[https://althruist.fyi](https://althruist.fyi/) (Althruist)<br><br>
+[https://davidlao.net](https://davidlao.net) (n3x4z/davidlao)
